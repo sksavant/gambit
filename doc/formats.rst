@@ -453,3 +453,342 @@ then, should be the same as the product of the number of strategies
 for all players in the game.
 
 
+
+The new-style XML file format
+-----------------------------
+
+.. note::
+
+   This section describes a provisional new XML-based file format
+   based on the one developed for early versions of Game Theory
+   Explorer.  It is subject to change (perhaps significantly) and is
+   not yet suitable for long-term storage of game data.
+
+   This is based on the report prepared by Karen Bletzer for Google
+   Summer of Code 2011.
+
+
+XML design approach
+~~~~~~~~~~~~~~~~~~~
+
+The XML structure for extensive and strategic games should be general
+and robust enough to include any and all features currently supported
+by the Gambit file formats such that the XML structure could
+potentially also be used for Gambit files in the future.  To such an
+end the XML structure proposed in this document is informed by the
+current Gambit efg and nfg formats, in that all elements supported by
+these file formats should also be supported by the gte XML structure
+such that lossless data conversion can be achieved between the
+formats.
+
+Additionally, the XML structure should separate display information
+from data so that different consumers of the data can focus on the
+data that is relevant to them.  For example, if a user would like to
+compute equilibria for a particular strategic game, they will not need
+the display information.
+
+Proposed display elements for the XML representation are not covered
+in this document, although the placeholder ``display`` tags will be
+included to indicate where this data will be stored in the future.
+
+
+XML approach: Overview
+~~~~~~~~~~~~~~~~~~~~~~
+
+The XML specification outlined in this document builds on the existing
+Game Theory Explorer XML specification.  Differences between the
+specifications are briefly explored at the end.  In this section we
+focus on discussing the XML structure and how it supports
+communication of the game data.
+
+Each XML document must have a root element that signals the beginning
+of the document's information.  In this case we will choose ``gte`` as the
+root element. The gte root can have five possible children.
+
+The first child is the game description.  The game description element
+contains text describing the game.  This element maps directly to the
+game description element within the efg and nfg file formats, and
+should be present for all documents, although the contents may be
+blank.
+
+The next child of gte, the players element, explicitly defines the
+name and ordering of each player.  This element is required in all gte
+XML output.
+
+The third child of gte contains information regarding how the game
+should be displayed on a UI.  How the XML for the display should be
+formatted will not be covered in this document, but will be addressed
+at a later time.  However, in this document the display tags are shown
+as a placeholder in some contexts.
+
+The remaining two child elements represent the type of game, extensive
+or strategic, and are an either/or choice for a particular
+document. One document cannot represent both an extensive and a
+strategic game.
+
+As an example, the beginning formulation of an extensive game would
+look as follows, where "..." represents elements that will be filled in
+as we proceed exploring the structure.
+
+.. code-block:: guess
+
+   <gte version="0.1">
+     <gameDescription>Untitled Extensive Game</gameDescription>
+        <players>
+           <player playerId="1">Player 1</player>
+           <player playerId="2">Player 2</player>
+        </players>
+     <display></display>
+     <extensiveForm>
+        ...
+     </extensiveForm>
+   </gte>
+
+The beginning formulation of a strategic game is similar, except the
+extensiveForm tag is replaced by the strategicForm tag.
+
+
+.. code-block:: guess
+
+   <gte version="0.1">
+     <gameDescription>Untitled Strategic Game</gameDescription>
+        <players>
+           <player playerId="1">Player 1</player>
+           <player playerId="2">Player 2</player>
+        </players>
+     <display></display>
+     <strategicForm>
+        ...
+     </strategicForm>
+   </gte>
+
+Extensive games
+~~~~~~~~~~~~~~~
+
+Let's first explore the information that makes up the extensive game,
+starting from the smallest building block: outcome.
+
+Outcomes
+########
+
+A terminal node represents a node in the game tree that has
+no children.  A simple terminal node with no payoff is represented by
+the ``outcome`` element.  In fully defined games outcomes are likely
+to contain player payoffs. An payoff for Player 1 in a game can be
+represented as:
+
+.. code-block:: guess
+
+   <payoff player="Player 1">5</payoff>
+
+Note that the element has a payoff content of 5, indicating that the
+payoff for Player 1 has the value 5.  Payoffs may be child elements of
+the outcome element.
+
+A terminal node with payoff for a two-player game with payoff 5 for
+Player 1 and payoff 7 for Player 2 would look as follows:
+
+.. code-block:: guess
+
+   <outcome>
+     <payoff player="Player 1">5</payoff>
+     <payoff player="Player 2">7</payoff>
+   </outcome>
+
+
+As mentioned earlier, each node in an efg file has an outcome id.  If
+the outcome id is zero, that is the null outcome.  This does not need
+to be represented in the XML.  However, if the outcome id is greater
+than 1 this will be represented in the XML as an attribute with name
+``outcomeId``:
+
+.. code-block:: guess
+
+   <outcome outcomeId="1">
+     <payoff player="Player 1">5</payoff>
+     <payoff player="Player 2">7</payoff>
+   </outcome>
+
+Note that the payoff elements can be repeated to communicate the
+payoffs for any and all number of players participating in an
+extensive game.
+
+Nodes
+#####
+
+Both a chance node and a player (decision) node are represented by the
+same element: ``node``.
+
+The attributes of the node define what type of data the node
+represents.  Node attributes include the iset, outcome, and player.
+The attributes define the information at the node itself, as well as
+potentially information about its parent.  For example, if a node has
+an associated probability, its parent node was a chance node, and its
+siblings are also chance nodes with associated probabilities.  As
+another example, if a node contains either iset name or number, we
+know the node is part of an iset.
+
+.. figure:: figures/gte-sample-1.*
+            :alt: A simple game created with GTE.
+            :align: center
+ 
+In the extensive game shown in the figure the root node represents a
+player node with two possible moves.  Each move results in different
+payoffs to the two players participating in the game.  This 
+scenario can be represented in an efg file as follows:
+
+.. code-block:: guess
+
+   EFG 2 R "Two Choices" { "Player 1" "Player 2" }
+   ""
+
+   p "root" 1 1 "" { "c1" "c2" } 0
+   t "result1" 1 "" { 7, 9 }
+   t "result2" 2 "" { 24, 2 }
+
+The corresponding XML, omitting the gte and initial game description
+elements for brevity, is
+
+
+.. code-block:: guess
+
+   <node iset="1" nodeName="root" player="Player 1">
+     <outcome move="c1" nodeName="result1">
+       <payoff player="1">7</payoff>
+       <payoff player="2">9</payoff>
+     </outcome>
+     <outcome move="c2" nodeName="result2">
+       <payoff player="1">24</payoff>
+       <payoff player="2">2</payoff>
+     </outcome>
+   </node>
+
+
+Some observations about the above XML. The root node contains
+attributes to represent the player that is making the decision as well
+as the iset number that is present in the efg file.  The outcome
+elements in the XML have a parent element of node.  The move
+information on line 4 of the efg file is associated to the node or
+outcome that is a result of that move. That is, "c1" is the name of
+the first outcome, and "c2" is the name of the second outcome.  Each
+node and outcome in the example has a nodeName.
+
+A similar game is shown in the next figure.  In this case the root
+node is a chance node, with the left outcome having a probability of
+13/20 and the right outcome having a probability of 7/20.  The payoffs
+once again are different based on the move of the root that is
+selected by chance.
+
+.. figure:: figures/gte-sample-2.*
+            :alt: Simple extensive game with chance node.
+            :align: center
+
+The representation of this game in efg format is
+
+.. code-block:: guess
+
+   EFG 2 R "Untitled Extensive Game" { "1" "2" }
+   ""
+
+   c "" 1 "" { "m1" 13/20 "m2" 7/20 } 0
+   t "" 2 "" { 11, 2 }
+   t "" 3 "" { 1, 21 }
+
+The XML for the node data, omitting header elements for brevity, can
+be written as
+
+.. code-block:: guess
+
+   <node iset="1">
+     <outcome move="m1" prob="13/20" outcomeId="2">
+       <payoff player="1">11</payoff>
+       <payoff player="2">2</payoff>
+     </outcome>
+     <outcome move="m2" prob="7/20" outcomeId="3">
+       <payoff player="1">1</payoff>
+       <payoff player="2">21</payoff>
+     </outcome>
+   </node>
+
+
+Note that the nodes in the efg file do not have node names.
+Correspondingly, there is no nodeName attribute in the XML.  If an
+attribute value does not exist, or has a blank value, it is not be
+represented in the XML attributes.  Additionally, note the presence of
+the prob attribute in the outcome tag.  This attribute indicates that
+the outcome is a result of a chance move that occurred with the given
+probability value.  For a game tree the move and probability are data
+associated to the edge of the graph, and the remaining attributes such
+as player, iset, etc., are data associated to the node itself.  In an
+XML representation of the game tree it would be possible to have both
+a probability and a player at the same node if the node is a player
+decision node, but was a result of a chance move.
+
+
+Payoffs may be associated to an internal node, and nodes may be nested
+to any depth – just as a game tree can have any number of levels.
+
+The following figure represents a more complex example.
+
+.. figure:: figures/gte-sample-3.*
+            :alt: Extensive game with information sets, viewed in Gambit.
+            :align: center
+
+This game is represented in XML as
+
+.. code-block:: guess
+
+  <gte version="0.1">
+    <gameDescription>Sample Game</gameDescription>
+    <players>
+      <player playerId="1">Player 1</player>
+      <player playerId="2">Player 2</player>
+    </players>
+    <display></display>
+    <extensiveForm>
+      <node nodeName="root">
+        <node iset="1" move="Chance 1" nodeName="P2 - 1" player="Player 2" prob="1/2">
+          <payoff player="Player 1">1</payoff>
+          <payoff player="Player 2">5</payoff>
+          <outcome move="a">
+            <payoff player="Player 1">14</payoff>
+            <payoff player="Player 2">15</payoff>
+          </outcome>
+          <node iset="2" move="b" nodeName="P1 - 1" player="Player 1">
+            <outcome move="C">
+              <payoff player="Player 1">24</payoff>
+              <payoff player="Player 2">10</payoff>
+            </outcome>
+            <outcome move="D">
+              <payoff player="Player 1">21</payoff>
+              <payoff player="Player 2">19</payoff>
+            </outcome>
+          </node>
+        </node>
+        <node iset="1" move="Chance 2" nodeName="P2 - 2" player="Player 2" prob="1/2">
+          <payoff player="Player 1">2</payoff>
+          <payoff player="Player 2">3</payoff>
+          <node iset="3" move="a" nodeName="P1 - 2" player="Player 1">
+            <outcome move="E">
+              <payoff player="Player 1">2</payoff>
+              <payoff player="Player 2">14</payoff>
+            </outcome>
+            <outcome move="F">
+              <payoff player="Player 1">23</payoff>
+              <payoff player="Player 2">10</payoff>
+            </outcome>
+          </node>
+          <node iset="3" move="b" nodeName="P1 - 3" player="Player 1">
+            <outcome move="E">
+              <payoff player="Player 1">2</payoff>
+              <payoff player="Player 2">18</payoff>
+            </outcome>
+            <outcome move="F">
+              <payoff player="Player 1">4</payoff>
+              <payoff player="Player 2">7</payoff>
+            </outcome>
+          </node>
+        </node>
+      </node>
+    </extensiveForm>
+  </gte>
