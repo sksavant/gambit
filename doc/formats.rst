@@ -792,3 +792,107 @@ This game is represented in XML as
       </node>
     </extensiveForm>
   </gte>
+
+
+Strategic games
+~~~~~~~~~~~~~~~
+
+A strategic game contains strategy information like an extensive
+game. However, since it does not contain nested or tree information it
+is more straightforward to represent and map this type of game in XML.
+The main concepts communicated in the strategic game are the
+strategies and the payoffs.
+
+Starting with the pieces that make up the strategic game XML, the
+strategy element contains the labels for a particular player's
+strategies. The strategies for a two-player game where each player has
+two strategies may be represented by
+
+.. code-block:: guess
+
+   <strategy player="Player 1">{ "1" "2" }</strategy>
+   <strategy player="Player 2">{ "1" "2" }</strategy>
+
+We can see the first set of strategy labels belong to Player 1, as
+listed in the attributes section of the strategy tag.  This is
+consistent with the way player data is represented in extensive games.
+The content of the strategy tags are quoted identifiers which
+represent the player's strategies in order.  In this way we can
+represent strategies for any number of players.  In the first line
+above the, we see that Player 1 has two strategies: "1" and "2".
+Player 2 also has two strategies, with the same labels as Player 1's
+strategies.  If there were more players their strategies would
+continue the list.
+
+A player's payoff is listed within the payoffs tag.  The payoffs
+follow the same ordering convention as the nfg files.  Below is an
+example of player payoffs – each payoff is delimited by whitespace.
+Rows are separated by the newline "\n" character.  The payoffs tag is
+used for the strategic game, compared to the payoff tag used for the
+extensive game.  The two elements are not interchangeable.
+
+.. code-block:: guess
+
+   <payoffs player="Player 1"> 
+     2 3 
+     5 7
+   </payoffs>
+   <payoffs player="Player 2"> 
+     3 3 
+     6 9
+   </payoffs>
+
+.. figure:: figures/gte-sample-4.*
+            :alt: A three-player game in strategic form.
+            :align: center
+
+A complete three person strategic game, depicted above as
+displayed by Gambit, can be represented in XML as
+
+
+.. code-block:: guess
+
+   <gte version="0.1">
+     <gameDescription>My untitled game</gameDescription>
+       <players>
+	 <player playerId="1">Player 1</player>
+         <player playerId="2">Player 2</player>
+         <player playerId="3">Player 3</player>
+       </players>
+     <display></display>
+     <strategicForm size="{ 3 2 2 }">
+       <strategy player="Player 1">{ "c" "d" "e" }</strategy>
+       <strategy player="Player 2">{ "1" "2" }</strategy>
+       <strategy player="Player 3">{ "A" "B" }</strategy>
+       <payoffs player="Player 1"> 
+            2 5 1 
+            3 7 0 
+            0 0 1 
+            0 1 7 
+       </payoffs>
+       <payoffs player="Player 2"> 
+            3 6 0 
+            3 9 3 
+            1 0 1 
+            0 1 0 
+       </payoffs>
+       <payoffs player="Player 3"> 
+            1 5 2 
+            1 4 0 
+            2 7 -1 
+            2 -2 5
+       </payoffs>
+    </strategicForm>
+  </gte>
+
+
+For a two player game the payoff for a player can be represented by an
+M x N matrix.  M is the number of rows, or strategies, for the first
+player.  N is the number of columns, or strategies, for the second
+player.  If there are more than 2 players then there are multiple M x
+N matrices representing the payoffs for the strategies of the
+additional players.  For a three player game, as above, where the
+third player has two strategies, we expect the M x N matrix to be
+repeated 2 times; once for each of the third player's strategy.  This
+approach can be extrapolated to games for any number of players.
+
