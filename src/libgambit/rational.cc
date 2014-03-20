@@ -540,6 +540,10 @@ Rational Rational::operator/(const Rational &y) const
 template<>
 Rational lexical_cast(const std::string &f)
 {
+  Rational y;
+  std::istringstream strstream(f);
+  strstream >> y;
+  std::cerr << "TEST " << y << "\n";
   char ch = ' ';
   int sign = 1;
   unsigned int index = 0, length = f.length();
