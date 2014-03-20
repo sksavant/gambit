@@ -365,6 +365,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
     Integer exponent = 0;
     f.get(ch);
     if (f.eof() || f.bad()) {
+      f.unget();
       ch = ' ';
     }
     if (ch == '-') {
@@ -379,6 +380,8 @@ std::istream &operator>>(std::istream &f, Rational &y)
       exponent += (int) (ch - '0');
       f.get(ch);
       if (f.eof() || f.bad()) {
+        f.unget();
+        f.unget();
         ch = ' ';
       }
     }
@@ -588,9 +591,7 @@ Rational lexical_cast(const std::string &f)
   std::istringstream str_stream(f);
   str_stream >> y;
 
-  char ch = ' ';
-  str_stream.get(ch);
-  if (ch != '\0') {
+  if (!str_stream.eof()){
     throw ValueException();
   }
   return y;
