@@ -587,6 +587,12 @@ Rational lexical_cast(const std::string &f)
   Rational y;
   std::istringstream str_stream(f);
   str_stream >> y;
+
+  char ch = ' ';
+  str_stream.get(ch);
+  if (ch != '\0') {
+    throw ValueException();
+  }
   return y;
 }
 
