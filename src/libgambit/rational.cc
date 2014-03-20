@@ -292,6 +292,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
 {
   char ch = ' ';
   int sign = 1;
+  bool has_exp = false;
   Integer num = 0, denom = 1;
 
   while (isspace(ch)) {
@@ -348,6 +349,49 @@ std::istream &operator>>(std::istream &f, Rational &y)
       f.get(ch);
       if (f.eof() || f.bad()) {
 	ch = ' ';
+      }
+    }
+
+    if (ch == 'e' || ch == 'E'){
+      has_exp = true;
+    }
+  }
+  else if (ch == 'e' || ch == 'E') {
+    has_exp = true;
+  }
+
+  if (has_exp){
+    int expsign = 1;
+    Integer exponent = 0;
+    f.get(ch);
+    if (f.eof() || f.bad()) {
+      ch = ' ';
+    }
+    if (ch == '-') {
+      expsign = -1;
+      f.get(ch);
+      if (f.eof() || f.bad()) {
+        ch = ' ';
+      }
+    }
+    while (ch >= '0' && ch <= '9'){
+      exponent *= 10;
+      exponent += (int) (ch - '0');
+      f.get(ch);
+      if (f.eof() || f.bad()) {
+        ch = ' ';
+      }
+    }
+    if (exponent * expsign > 0) {
+      while (exponent > 0){
+        num *= 10;
+        exponent -= 1;
+      }
+    }
+    else if (exponent * expsign < 0) {
+      while (exponent > 0){
+        denom *= 10;
+        exponent -=1;
       }
     }
   }
@@ -540,104 +584,16 @@ Rational Rational::operator/(const Rational &y) const
 template<>
 Rational lexical_cast(const std::string &f)
 {
+  Rational y;
+  std::istringstream str_stream(f);
+  str_stream >> y;
+
   char ch = ' ';
-  int sign = 1;
-  unsigned int index = 0, length = f.length();
-  Integer num = 0, denom = 1;
-
-  while (isspace(ch) && index<=length) {
-    ch = f[index++];
-  }
-
-  if (ch == '-' && index<=length)  {
-    sign = -1;
-    ch=f[index++];
-  }
-
-  while (ch >= '0' && ch <= '9' && index<=length)   {
-    num *= 10;
-    num += (int) (ch - '0');
-    ch=f[index++];
-  }
-
-  if (ch == '/')  {
-    denom = 0;
-    ch=f[index++];
-    while (ch >= '0' && ch <= '9' && index<=length)  {
-      denom *= 10;
-      denom += (int) (ch - '0');
-      ch=f[index++];
-    }
-  }
-  else if (ch == '.')  {
-    denom = 1;
-    ch=f[index++];
-    while (ch >= '0' && ch <= '9' && index<=length)  {
-      denom *= 10;
-      num *= 10;
-      num += (int) (ch - '0');
-      ch=f[index++];
-    }
-    
-    if (ch == 'e' || ch == 'E') {
-      int expsign = 1;
-      Integer exponent = 0;
-      ch = f[index++];
-      if (ch == '-')  {
-	expsign = -1;
-	ch = f[index++];
-      }
-      while (ch >= '0' && ch <= '9' && index <= length) {
-	exponent *= 10;
-	exponent += (int) (ch - '0');
-	ch = f[index++];
-      }
-      if (exponent * expsign > 0) {
-	while (exponent > 0) {
-	  num *= 10;
-	  exponent -= 1;
-	}
-      }
-      else if (exponent * expsign < 0) {
-	while (exponent > 0) {
-	  denom *= 10;
-	  exponent -= 1;
-	}
-      }
-    }
-  }
-  else if (ch == 'e' || ch == 'E') {
-    int expsign = 1;
-    Integer exponent = 0;
-    ch = f[index++];
-    if (ch == '-')  {
-      expsign = -1;
-      ch = f[index++];
-    }
-    while (ch >= '0' && ch <= '9' && index <= length) {
-      exponent *= 10;
-      exponent += (int) (ch - '0');
-      ch = f[index++];
-    }
-    if (exponent * expsign > 0) {
-      while (exponent > 0) {
-	num *= 10;
-	exponent -= 1;
-      }
-    }
-    else if (exponent * expsign < 0) {
-      while (exponent > 0) {
-	denom *= 10;
-	exponent -= 1;
-      }
-    }
-  }
-
+  str_stream.get(ch);
   if (ch != '\0') {
     throw ValueException();
   }
-
-  return Rational(num * sign, denom);
+  return y;
 }
 
 }  // end namespace Gambit
