@@ -1,8 +1,8 @@
 #include "src/libgambit/libgambit.h"
-#include "boost/lexical_cast.hpp"
+//#include "boost/lexical_cast.hpp"
 #include <cstring>
 
-using boost::lexical_cast;
+//using boost::lexical_cast;
 
 int main(){
     Gambit::Rational y;

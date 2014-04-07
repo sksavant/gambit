@@ -1,5 +1,5 @@
 make
-g++ test.cpp -c -I/media/DATA/home/repos/gsoc_repos/gambit_repos/gambit.unify-rat-string/src/libgambit/ -I/media/DATA/home/repos/gsoc_repos/gambit_repos/gambit.unify-rat-string/ -I/media/DATA/home/repos/gsoc_repos/gambit_repos/gambit.unify-rat-string/src/
+g++ test.cpp -c -I$PWD/src/libgambit/ -I$PWD -I$PWD/src/
 
 g++ -o out_test test.o src/libgambit/*.o src/libagg/agg.o src/libagg/bagg.o 
 ./out_test
