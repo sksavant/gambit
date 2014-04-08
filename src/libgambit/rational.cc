@@ -298,7 +298,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
   while (isspace(ch)) {
     f.get(ch);
     std::cerr << ch << " : 1\n";
-    if (f.eof() || f.bad())  {
+    if (f.eof() || f.bad() || f.fail()) {
       throw ValueException();
     }
   }
@@ -307,11 +307,12 @@ std::istream &operator>>(std::istream &f, Rational &y)
     sign = -1;
     f.get(ch);
     std::cerr << ch << " : 2\n";
-    if (f.eof() || f.bad()) {
+    if (f.eof() || f.bad() || f.fail()) {
       ch = ' ';
-    }    
+    }
   }
   else if ((ch < '0' || ch > '9') && ch != '.') {
+    f.setstate(std::ios::failbit);
     throw ValueException();
   }
   while (ch >= '0' && ch <= '9')   {
@@ -319,7 +320,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
     num += (int) (ch - '0');
     f.get(ch);
     std::cerr << ch << " : 3\n";
-    if (f.eof() || f.bad()) {
+    if (f.eof() || f.bad() || f.fail()) {
       ch = ' ';
     }
   }
@@ -328,7 +329,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
     denom = 0;
     f.get(ch);
     std::cerr << ch << " : 4\n";
-    if (f.eof() || f.bad()) {
+    if (f.eof() || f.bad() || f.fail()) {
       ch = ' ';
     }
     while (ch >= '0' && ch <= '9')  {
@@ -336,7 +337,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
       denom += (int) (ch - '0');
       f.get(ch);
     std::cerr << ch << " : 5\n";
-      if (f.eof() || f.bad()) {
+      if (f.eof() || f.bad() || f.fail()) {
 	ch = ' ';
       }
     }
@@ -345,7 +346,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
     denom = 1;
     f.get(ch);
     std::cerr << ch << " : 6\n";
-    if (f.eof() || f.bad()) {
+    if (f.eof() || f.bad() || f.fail()) {
       ch = ' ';
     }
     while (ch >= '0' && ch <= '9')  {
@@ -354,7 +355,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
       num += (int) (ch - '0');
       f.get(ch);
     std::cerr << ch << " : 7\n";
-      if (f.eof() || f.bad()) {
+      if (f.eof() || f.bad() || f.fail()) {
 	ch = ' ';
       }
     }
@@ -372,7 +373,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
     Integer exponent = 0;
     f.get(ch);
     std::cerr << ch << " : 8\n";
-    if (f.eof() || f.bad()) {
+    if (f.eof() || f.bad() || f.fail()) {
       f.unget();
       ch = ' ';
     }
@@ -380,7 +381,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
       expsign = -1;
       f.get(ch);
     std::cerr << ch << " : 9\n";
-      if (f.eof() || f.bad()) {
+      if (f.eof() || f.bad() || f.fail()) {
         f.unget();
         f.unget();
         ch = ' ';
@@ -391,7 +392,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
       exponent += (int) (ch - '0');
       f.get(ch);
     std::cerr << ch << " : 10\n";
-      if (f.eof() || f.bad()) {
+      if (f.eof() || f.bad() || f.fail()) {
         ch = ' ';
       }
     }
@@ -415,8 +416,16 @@ std::istream &operator>>(std::istream &f, Rational &y)
     f.unget();
   }
 
-  y = Rational(num * sign, denom);
-  y.normalize();
+  if (denom==0) {
+    f.setstate(std::ios::failbit);
+    throw (Gambit::ValueException());
+    return f;
+  }
+
+  if (f) {
+    y = Rational(num * sign, denom);
+    y.normalize();
+  }
 
   return f;
 }
