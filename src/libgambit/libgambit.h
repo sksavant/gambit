@@ -95,7 +95,7 @@ public:
 class ZeroDivideException : public Exception {
 public:
   virtual ~ZeroDivideException() throw() { }
-  const char *what(void) const throw()  { return "Attmpted division by zero"; }
+  const char *what(void) const throw()  { return "Attempted division by zero"; }
 };
 
 /// An exception thrown when attempting to dereference a null pointer
