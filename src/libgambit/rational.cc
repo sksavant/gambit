@@ -298,6 +298,7 @@ std::istream &operator>>(std::istream &f, Rational &y)
   while (isspace(ch)) {
     f.get(ch);
     std::cerr << ch << " : 1\n";
+    std::cerr << "State-bad " << f.bad() << "\n";
     if (f.eof() || f.bad() || f.fail()) {
       throw ValueException();
     }
@@ -417,7 +418,9 @@ std::istream &operator>>(std::istream &f, Rational &y)
   }
 
   if (denom==0) {
+    std::cerr << "Denom is 0\n";
     f.setstate(std::ios::failbit);
+    std::cerr << "State-bad " << f.bad() << "\n";
     throw (Gambit::ValueException());
     return f;
   }
