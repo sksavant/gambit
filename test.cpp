@@ -10,9 +10,20 @@ int main(){
     std::string s;
 
     std::cerr << "Test cin\n";
-    std::cin >> y;
+    try{
+        std::cin >> y;
+    }catch(Gambit::ValueException e){
+        std::cerr << "EXCEPTON\n";
+    }
     std::cerr << "MAIN CIN " << y << "\n";
 
+    std::cerr << "Test cin\n";
+    try{
+        std::cin >> y;
+    }catch(Gambit::ValueException e){
+        std::cerr << "EXCEPTON\n";
+    }
+    std::cerr << "MAIN CIN " << y << "\n";
     return 0;
     s = "1.573e2blahblah";
     std::cerr << "Test " << i++ << " " << s << "\n";
