@@ -7,7 +7,23 @@
 int main(){
     Gambit::Rational y;
     int i=0;
-    std::string s = "1.573e2blahblah";
+    std::string s;
+
+    std::cerr << "Test cin\n";
+    std::cin >> y;
+    std::cerr << "MAIN CIN " << y << "\n";
+
+    return 0;
+    s = "1.573e2blahblah";
+    std::cerr << "Test " << i++ << " " << s << "\n";
+    try{
+        y = Gambit::lexical_cast<Gambit::Rational>(s);
+    }catch(Gambit::ValueException e){
+        std::cerr << "EXCEPTON\n";
+    }
+    std::cerr << "MAIN " << y << "\n";
+
+    s = "5/0";
     std::cerr << "Test " << i++ << " " << s << "\n";
     try{
         y = Gambit::lexical_cast<Gambit::Rational>(s);
